@@ -34,6 +34,7 @@ type Client struct {
 	BaseURL *url.URL
 
 	UserAgent string
+	APIKey string
 
 	// OTX API Services
 	UserDetail  *OTXUserDetailService
@@ -88,7 +89,7 @@ func (c *OTXPulseDetailService) Get(id_string string) (PulseDetail, Response, er
 	client := &http.Client{}
 
 	req, _ := http.NewRequest(get, fmt.Sprintf("%s/%s/%s/", defaultBaseURL, pulseDetailURLPath, id_string), nil)
-	req.Header.Set("X-OTX-API-KEY", fmt.Sprintf("%s", os.Getenv("X_OTX_API_KEY")))
+	req.Header.Set("X-OTX-API-KEY", c.client.APIKey)
 
 	response, _ := client.Do(req)
 	resp := Response{Response: response}
@@ -113,7 +114,7 @@ func (c *OTXThreatIntelFeedService) List(opt *ListOptions) (ThreatIntelFeed, Res
 	}
 
 	req, _ := http.NewRequest(get, requestpath, nil)
-	req.Header.Set("X-OTX-API-KEY", fmt.Sprintf("%s", os.Getenv("X_OTX_API_KEY")))
+	req.Header.Set("X-OTX-API-KEY", c.client.APIKey)
 
 	response, _ := client.Do(req)
 	resp := Response{Response: response}
@@ -140,7 +141,7 @@ func (c *OTXUserDetailService) Get() (UserDetail, *Response, error) {
 	if err != nil {
 		return UserDetail{}, nil, err
 	}
-	req.Header.Set("X-OTX-API-KEY", fmt.Sprintf("%s", os.Getenv("X_OTX_API_KEY")))
+	req.Header.Set("X-OTX-API-KEY", c.client.APIKey)
 
 	userdetail := &UserDetail{}
 	resp, err := c.client.Do(req, userdetail)
@@ -155,12 +156,12 @@ func (c *OTXUserDetailService) Get() (UserDetail, *Response, error) {
 
 // NewClient returns a new OTX API client.  If a nil httpClient is
 // provided, http.DefaultClient will be used.
-func NewClient(httpClient *http.Client) *Client {
+func NewClient(httpClient *http.Client, apiKey string) *Client {
 	if httpClient == nil {
 		httpClient = http.DefaultClient
 	}
 	baseURL, _ := url.Parse(defaultBaseURL)
-	c := &Client{client: httpClient, BaseURL: baseURL, UserAgent: userAgent}
+	c := &Client{client: httpClient, BaseURL: baseURL, UserAgent: userAgent, APIKey: apiKey}
 
 	c.UserDetail = &OTXUserDetailService{client: c}
 	return c
