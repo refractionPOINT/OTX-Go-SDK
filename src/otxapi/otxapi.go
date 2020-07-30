@@ -95,13 +95,16 @@ func (c *OTXPulseDetailService) Get(id_string string) (PulseDetail, Response, er
 	resp := Response{Response: response}
 
 	contents, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		fmt.Printf("%s", err)
-		os.Exit(1)
-	}
 	pulse_detail := new(PulseDetail)
-	json.Unmarshal(contents, &(pulse_detail))
-	json.Unmarshal(contents, &(resp.Content))
+	if err != nil {
+		return *pulse_detail, resp, err
+	}
+	if err := json.Unmarshal(contents, &(pulse_detail)); err != nil {
+		return *pulse_detail, resp, err
+	}
+	if err := json.Unmarshal(contents, &(resp.Content)); err != nil {
+		return *pulse_detail, resp, err
+	}
 
 	return *pulse_detail, resp, err
 }
